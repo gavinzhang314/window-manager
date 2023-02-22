@@ -5,34 +5,7 @@ const TABLE_BODY_ID = "table"
 
 let data = {};
 let keys = [];
-/*
-browser.storage.local.set({
-        1111: {
-            name: "test1",
-            urls: [
-                "https://www.mozilla.org/en-US/",
-                "https://duckduckgo.com/",
-                "https://www.google.com/"
-            ]
-        },
-        2222: {
-            name: "test2",
-            urls: [
-                "https://www.mozilla.org/en-US/",
-                "https://www.nytimes.com/",
-                "https://www.npr.org/"
-            ]
-        },
-        3333: {
-            name: "test3",
-            urls: [
-                "https://www.mozilla.org/en-US/",
-                "https://www.youtube.com/",
-                "https://github.com/"
-            ]
-        }
-    })
-*/
+
 browser.storage.local.get()
     .then((d) => {
         data = d;
@@ -53,18 +26,6 @@ browser.storage.local.get()
 
 document.addEventListener("click", (e) => {
     switch (e.currentTarget.id) {
-        case "new-window": {
-            const urlsToOpen = [
-                "https://www.mozilla.org/en-US/",
-                "https://duckduckgo.com/",
-                "https://www.google.com/"
-            ];
-            browser.windows.create({
-                url: urlsToOpen["urls"]
-            });
-            break;
-        }
-
         case "print-all": {
             console.log(document.getElementsByTagName("html")[0].innerHTML);
         }
