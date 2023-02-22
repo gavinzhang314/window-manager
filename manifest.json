@@ -1,0 +1,31 @@
+{
+
+    "manifest_version": 2,
+    "name": "Window Manager",
+    "version": "1.0",
+
+    "description": "Manages closed windows.",
+
+    "permissions": [
+        "theme",
+        "tabs",
+        "storage",
+        "sessions"
+    ],
+
+    "icons": {
+        "48": "icons/window.svg"
+    },
+
+    "browser_action": {
+        "default_icon": "icons/tab_icon.png",
+        "default_title": "Window Manager",
+        "default_popup": "popup/window_manager.html"
+    },
+
+    "background": {
+        "scripts": [
+            "background.js"
+        ]
+    }
+}
