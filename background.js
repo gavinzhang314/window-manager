@@ -31,13 +31,15 @@ function storeRemovedWindows() {
                 tabs = session.window.tabs;
                 console.log(tabs);
                 windowName = getHostName(tabs[0].url);
+
                 for(let i = 0; i < tabs.length; i ++) {
                     console.log(tabs[i].url);
                     urls.push(tabs[i].url);
                 }
 
                 return browser.storage.local.set({
-                    [session.id]: {
+                    // TODO: change to random string?
+                    [session.window.sessionId]: {
                         name: windowName,
                         urls: urls
                     }
