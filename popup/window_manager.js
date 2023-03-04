@@ -58,8 +58,6 @@ document.addEventListener("click", (e) => {
                 button = e.target.parentNode;
             }
             
-            console.log("button pressed with id " + button.id);
-            console.log(e.currentTarget);
             if (button.id.startsWith(BUTTON_OPEN_ID)) {
                 let key = button.id.split(BUTTON_OPEN_ID)[1];
                 browser.windows.create({
@@ -82,7 +80,6 @@ document.addEventListener("click", (e) => {
                     .then(() => {
                         // Remove row
                         // TODO: add this to a function?
-                        console.log("DELETINGJDFDJSFHLSJFA");
                         let rowToRemove = document.getElementById(ROW_ID + key);
                         rowToRemove.parentNode.removeChild(rowToRemove);
                         browser.storage.local.remove(key);
@@ -91,7 +88,6 @@ document.addEventListener("click", (e) => {
                 
             } else if (button.id.startsWith(BUTTON_DELETE_ID)) {
                 let key = button.id.split(BUTTON_DELETE_ID)[1];
-                console.log("Deleting " + key);
                 let rowToRemove = document.getElementById(ROW_ID + key);
                 rowToRemove.parentNode.removeChild(rowToRemove);
                 browser.storage.local.remove(key);
