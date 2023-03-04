@@ -19,34 +19,76 @@ function getHostName(url) {
 function storeRemovedWindows() {
     let urls = [];
     let windowName = "";
-    console.log("session change");
-    browser.sessions.getRecentlyClosed({maxResults: 1})
+    let data = {};
+    browser.storage.local.get()
+        .then((d) => {
+            data = d;
+            return browser.sessions.getRecentlyClosed({maxResults: 1});
+        })
         .then((sessionArr) => {
-            console.log(sessionArr);
             let session = sessionArr[0];
-            console.log(session);
             // Check that last session change is a window closing
             if (session.window) {
-                console.log("session is window");
                 tabs = session.window.tabs;
-                console.log(tabs);
-                windowName = getHostName(tabs[0].url);
 
                 for(let i = 0; i < tabs.length; i ++) {
-                    console.log(tabs[i].url);
                     urls.push(tabs[i].url);
+                }
+
+                let windowObject = {};
+
+                if (currClosingWindowName) {
+                    windowObject = {
+                        name: currClosingWindowName,
+                        hasCustomName: true,
+                        urls: urls
+                    }
+                } else {
+                    windowObject = {
+                        name: getHostName(tabs[0].url),
+                        hasCustomName: false,
+                        urls: urls
+                    }
                 }
 
                 return browser.storage.local.set({
                     // TODO: change to random string?
-                    [session.window.sessionId]: {
-                        name: windowName,
-                        urls: urls
-                    }
+                    [session.window.sessionId]: windowObject
                 });
             }
         })
         .catch((e) => console.log(e));
 }
 
+/**
+ * Retrieves the name of the window with the given ID by using the ID as a key
+ * for data.openWindowNames and returns the window name after deleting it from
+ * data.openWindowNames.
+ * 
+ * @param {int} winId the ID if the window to retrieve the name of
+ * @returns the name of the window
+ */
+async function retrieveWindowName(winId) {
+    let data = await browser.storage.local.get();
+    let name = data.openWindowNames[winId];
+    delete data.openWindowNames[winId];
+    await browser.storage.local.set({openWindowNames: data.openWindowNames});
+    return name;
+}
+
+// The entire system for keeping track of names of open windows depends on the
+// observation/assumption that windows.onRemoved triggers before
+// sessions.onChanged. This is necessary because we only have access to the
+// window ID when the window is open and we only have access to the session ID
+// when the window is closed. Therefore, without this, we'd have to find a way
+// to convert between window ID and session ID, which I don't think is 
+// possible.
+
+// Name of the window that is currently being closed.
+let currClosingWindowName = null;
+
 browser.sessions.onChanged.addListener(storeRemovedWindows);
+
+browser.windows.onRemoved.addListener(
+        (winId) => retrieveWindowName(winId)
+                .then(name => {currClosingWindowName = name}));
