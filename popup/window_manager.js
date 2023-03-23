@@ -55,7 +55,6 @@ async function removeSavedWindow(key) {
     let rowToRemove = document.getElementById(ROW_ID + key);
     let table = rowToRemove.parentNode;
     table.removeChild(rowToRemove);
-    console.log(table.children.length);
     if (table.children.length == 0) {
         document.getElementById(NO_WINDOW_MESSAGE_ID)
             .removeAttribute("hidden");
@@ -119,17 +118,13 @@ document.addEventListener("dblclick", (e) => {
 
         let key = e.target.id.split(NAME_ID)[1];
         nameChange = key;
-        console.log("namechange set to "+ key);
         e.target.innerHTML = `<input id="${NAME_INPUT_ID + key}" text="${e.target.innerHTML}">`;
         let inputBox = document.getElementById(NAME_INPUT_ID + key);
     }
 });
 
 document.addEventListener("keypress", (e) => {
-    console.log("keypressed");
-    console.log(e);
     if (e.code == "Enter") {
-        console.log(nameChange);
         let win = data.windows[nameChange];
         let newName = document.getElementById(NAME_INPUT_ID + nameChange).value;
         document.getElementById(NAME_ID + nameChange).innerHTML = newName;

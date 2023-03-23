@@ -19,7 +19,6 @@ function getHostName(url) {
 async function storeRemovedWindows() {
     let session = 
             (await browser.sessions.getRecentlyClosed({maxResults: 1}))[0];
-    console.log(session);
     // Check that last session change is a window closing
     if (session.window) {
         let data = await browser.storage.local.get();
@@ -46,7 +45,6 @@ async function storeRemovedWindows() {
                 urls: urls
             }
         }
-        console.log(currClosingWindowName);
         if (data.windows) {
             await browser.storage.local.set({
                 windows: Object.assign(data.windows, {
