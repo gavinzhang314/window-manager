@@ -6,8 +6,9 @@ const BUTTON_DELETE_ID = "button-delete-";
 const ROW_ID = "row-"
 const NAME_ID = "name-"
 const NAME_INPUT_ID = "name-input-"
-
 const TABLE_BODY_ID = "table"
+
+const NO_WINDOW_MESSAGE_ID = "no-window-message";
 
 let data = {};
 let keys = [];
@@ -24,12 +25,18 @@ browser.storage.local.get()
         // Populate table in popup
         keys = Object.keys(data).filter(s => !s.startsWith("open"));
         let table = document.getElementById(TABLE_BODY_ID);
+        console.log(keys.length);
+        if (keys.length == 0) {
+            document.getElementById(NO_WINDOW_MESSAGE_ID)
+                .removeAttribute("hidden");
+        }
         for (let i = 0; i < keys.length; i ++) {
             win = data[keys[i]];
+
             table.innerHTML += `<tr id="${ROW_ID + keys[i]}">
-                    <td> <span id="${NAME_ID + keys[i]}"> ${win.name} </span> </td>
-                    <td> <button id="${BUTTON_OPEN_ID + keys[i]}"><i class="bi bi-window-plus"></i></button> </td>
-                    <td> <button id="${BUTTON_DELETE_ID + keys[i]}"><i class="bi bi-trash3"></i></button> </td>
+                    <td class="window-name"> <span id="${NAME_ID + keys[i]}"> ${win.name} </span> </td>
+                    <td> <button id="${BUTTON_OPEN_ID + keys[i]}"><i class="bi bi-window-plus"></i></button>
+                    <button id="${BUTTON_DELETE_ID + keys[i]}"><i class="bi bi-trash3"></i></button> </td>
                 </tr>`;
         }
     });
@@ -89,7 +96,13 @@ document.addEventListener("click", (e) => {
             } else if (button.id.startsWith(BUTTON_DELETE_ID)) {
                 let key = button.id.split(BUTTON_DELETE_ID)[1];
                 let rowToRemove = document.getElementById(ROW_ID + key);
-                rowToRemove.parentNode.removeChild(rowToRemove);
+                let table = rowToRemove.parentNode;
+                table.removeChild(rowToRemove);
+                console.log(table.children.length);
+                if (table.children.length == 0) {
+                    document.getElementById(NO_WINDOW_MESSAGE_ID)
+                        .removeAttribute("hidden");
+                }
                 browser.storage.local.remove(key);
             }
         }

@@ -1,7 +1,34 @@
 h1 {
-    font-size: 18px
+    font-size: 18px;
+    text-align: center;
 }
 
 body {
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.window-name {
+    padding-right: 25px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+tr:nth-child(even) {
+    background-color: #ffffff;
+}
+
+
+tr:nth-child(odd) {
+    background-color: #ececec;
+}
+
+button {
+    border: none;
+    background-color: inherit;
+}
+
+button:hover {
+    background-color: #00000020;
 }
