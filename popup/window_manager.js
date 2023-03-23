@@ -22,16 +22,19 @@ browser.storage.local.get()
         data = d;
         console.log(data);
 
+        if (data.windows == undefined) {
+            data["windows"] = {};
+        }
+
         // Populate table in popup
-        keys = Object.keys(data).filter(s => !s.startsWith("open"));
+        keys = Object.keys(data.windows).filter(s => !s.startsWith("open"));
         let table = document.getElementById(TABLE_BODY_ID);
-        console.log(keys.length);
         if (keys.length == 0) {
             document.getElementById(NO_WINDOW_MESSAGE_ID)
                 .removeAttribute("hidden");
         }
         for (let i = 0; i < keys.length; i ++) {
-            win = data[keys[i]];
+            win = data.windows[keys[i]];
 
             table.innerHTML += `<tr id="${ROW_ID + keys[i]}">
                     <td class="window-name"> <span id="${NAME_ID + keys[i]}"> ${win.name} </span> </td>
@@ -40,6 +43,28 @@ browser.storage.local.get()
                 </tr>`;
         }
     });
+
+/**
+ * Removes the window represented with the given key in local storage from the
+ * popup, local storage, and {@code data}.
+ * 
+ * @param {*} key the key used in local storage to represent the window to
+ *      remove
+ */
+async function removeSavedWindow(key) {
+    let rowToRemove = document.getElementById(ROW_ID + key);
+    let table = rowToRemove.parentNode;
+    table.removeChild(rowToRemove);
+    console.log(table.children.length);
+    if (table.children.length == 0) {
+        document.getElementById(NO_WINDOW_MESSAGE_ID)
+            .removeAttribute("hidden");
+    }
+
+    delete data.windows[key];
+
+    await browser.storage.local.set({windows: data.windows});
+}
 
 document.addEventListener("click", async (e) => {
     switch (e.target.id) {
@@ -65,34 +90,21 @@ document.addEventListener("click", async (e) => {
                 let win = await browser.windows.create({
                     // TODO: move to storing data part instead of here where
                     // it's being retrieved?
-                    url: data[key]["urls"].filter(s => s.startsWith("http"))
+                    url: data.windows[key]["urls"].filter(s => s.startsWith("http"))
                 });
                 // Store name of opened window in local memory
-                if (data[key].hasCustomName) {
+                if (data.windows[key].hasCustomName) {
                     await browser.storage.local.set({
-                        openWindowNames: Object.assign({
-                            [win.id]: data[key].name
-                        }, data.openWindowNames)
+                        openWindowNames: Object.assign(data.openWindowNames, {
+                            [win.id]: data.windows[key].name
+                        })
                     });
                 }
 
-                // Remove row
-                // TODO: add this to a function?
-                let rowToRemove = document.getElementById(ROW_ID + key);
-                rowToRemove.parentNode.removeChild(rowToRemove);
-                browser.storage.local.remove(key);
-                
+                await removeSavedWindow(key);
             } else if (button.id.startsWith(BUTTON_DELETE_ID)) {
                 let key = button.id.split(BUTTON_DELETE_ID)[1];
-                let rowToRemove = document.getElementById(ROW_ID + key);
-                let table = rowToRemove.parentNode;
-                table.removeChild(rowToRemove);
-                console.log(table.children.length);
-                if (table.children.length == 0) {
-                    document.getElementById(NO_WINDOW_MESSAGE_ID)
-                        .removeAttribute("hidden");
-                }
-                await browser.storage.local.remove(key);
+                await removeSavedWindow(key);
             }
         }
     }
@@ -101,7 +113,8 @@ document.addEventListener("click", async (e) => {
 document.addEventListener("dblclick", (e) => {
     if (e.target.id.startsWith(NAME_ID)) {
         if (nameChange) {
-            document.getElementById(NAME_ID + nameChange).innerHTML = data[nameChange].name;
+            document.getElementById(NAME_ID + nameChange).innerHTML =
+                    data.windows[nameChange].name;
         }
 
         let key = e.target.id.split(NAME_ID)[1];
@@ -117,16 +130,18 @@ document.addEventListener("keypress", (e) => {
     console.log(e);
     if (e.code == "Enter") {
         console.log(nameChange);
-        let win = data[nameChange];
+        let win = data.windows[nameChange];
         let newName = document.getElementById(NAME_INPUT_ID + nameChange).value;
         document.getElementById(NAME_ID + nameChange).innerHTML = newName;
 
+        data.windows[nameChange] = {
+            name: newName,
+            hasCustomName: true,
+            urls: data.windows[nameChange].urls
+        };
+
         browser.storage.local.set({
-            [nameChange]: {
-                name: newName,
-                hasCustomName: true,
-                urls: data[nameChange].urls
-            }
+            windows: data.windows
         });
         nameChange = null;
     }

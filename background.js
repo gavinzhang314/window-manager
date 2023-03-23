@@ -17,11 +17,12 @@ function getHostName(url) {
  * list of tabs open in that window session and stores it in local memory.
  */
 async function storeRemovedWindows() {
-    let data = await browser.storage.local.get();
     let session = 
             (await browser.sessions.getRecentlyClosed({maxResults: 1}))[0];
+    console.log(session);
     // Check that last session change is a window closing
     if (session.window) {
+        let data = await browser.storage.local.get();
         let tabs = session.window.tabs;
         let urls = [];
 
@@ -37,6 +38,7 @@ async function storeRemovedWindows() {
                 hasCustomName: true,
                 urls: urls
             }
+            currClosingWindowName = null;
         } else {
             windowObject = {
                 name: getHostName(tabs[0].url),
@@ -44,11 +46,22 @@ async function storeRemovedWindows() {
                 urls: urls
             }
         }
-
-        await browser.storage.local.set({
-            // TODO: change to random string?
-            [session.window.sessionId]: windowObject
-        });
+        console.log(currClosingWindowName);
+        if (data.windows) {
+            await browser.storage.local.set({
+                windows: Object.assign(data.windows, {
+                    // TODO: change to random string?
+                    [session.window.sessionId]: windowObject
+                })
+            });
+        } else {
+            await browser.storage.local.set({
+                windows: {
+                    // TODO: change to random string?
+                    [session.window.sessionId]: windowObject
+                }
+            });
+        }
     }
 }
 
