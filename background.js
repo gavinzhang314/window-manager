@@ -16,48 +16,40 @@ function getHostName(url) {
  * Checks to ensure that the last session is a window. If it is, extracts the
  * list of tabs open in that window session and stores it in local memory.
  */
-function storeRemovedWindows() {
-    let urls = [];
-    let windowName = "";
-    let data = {};
-    browser.storage.local.get()
-        .then((d) => {
-            data = d;
-            return browser.sessions.getRecentlyClosed({maxResults: 1});
-        })
-        .then((sessionArr) => {
-            let session = sessionArr[0];
-            // Check that last session change is a window closing
-            if (session.window) {
-                tabs = session.window.tabs;
+async function storeRemovedWindows() {
+    let data = await browser.storage.local.get();
+    let session = 
+            (await browser.sessions.getRecentlyClosed({maxResults: 1}))[0];
+    // Check that last session change is a window closing
+    if (session.window) {
+        let tabs = session.window.tabs;
+        let urls = [];
 
-                for(let i = 0; i < tabs.length; i ++) {
-                    urls.push(tabs[i].url);
-                }
+        for(let i = 0; i < tabs.length; i ++) {
+            urls.push(tabs[i].url);
+        }
 
-                let windowObject = {};
+        let windowObject = {};
 
-                if (currClosingWindowName) {
-                    windowObject = {
-                        name: currClosingWindowName,
-                        hasCustomName: true,
-                        urls: urls
-                    }
-                } else {
-                    windowObject = {
-                        name: getHostName(tabs[0].url),
-                        hasCustomName: false,
-                        urls: urls
-                    }
-                }
-
-                return browser.storage.local.set({
-                    // TODO: change to random string?
-                    [session.window.sessionId]: windowObject
-                });
+        if (currClosingWindowName) {
+            windowObject = {
+                name: currClosingWindowName,
+                hasCustomName: true,
+                urls: urls
             }
-        })
-        .catch((e) => console.log(e));
+        } else {
+            windowObject = {
+                name: getHostName(tabs[0].url),
+                hasCustomName: false,
+                urls: urls
+            }
+        }
+
+        await browser.storage.local.set({
+            // TODO: change to random string?
+            [session.window.sessionId]: windowObject
+        });
+    }
 }
 
 /**

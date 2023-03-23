@@ -41,15 +41,10 @@ browser.storage.local.get()
         }
     });
 
-document.addEventListener("click", (e) => {
+document.addEventListener("click", async (e) => {
     switch (e.target.id) {
         case "print-all": {
             console.log(document.getElementsByTagName("html")[0].innerHTML);
-            break;
-        }
-
-        case "window": {
-            browser.windows.getAll().then((l) => console.log(l));
             break;
         }
 
@@ -67,31 +62,25 @@ document.addEventListener("click", (e) => {
             
             if (button.id.startsWith(BUTTON_OPEN_ID)) {
                 let key = button.id.split(BUTTON_OPEN_ID)[1];
-                browser.windows.create({
+                let win = await browser.windows.create({
                     // TODO: move to storing data part instead of here where
                     // it's being retrieved?
                     url: data[key]["urls"].filter(s => s.startsWith("http"))
-                })
-                    .then((win) => {
-                        // Store name of opened window in local memory
-                        if (data[key].hasCustomName) {
-                            return browser.storage.local.set({
-                                openWindowNames: Object.assign({
-                                    [win.id]: data[key].name
-                                }, data.openWindowNames)
-                            });
-                        } else {
-                            return Promise.resolve();
-                        }
-                    })
-                    .then(() => {
-                        // Remove row
-                        // TODO: add this to a function?
-                        let rowToRemove = document.getElementById(ROW_ID + key);
-                        rowToRemove.parentNode.removeChild(rowToRemove);
-                        browser.storage.local.remove(key);
-                    })
-                    .catch(e => console.log(e));
+                });
+                // Store name of opened window in local memory
+                if (data[key].hasCustomName) {
+                    await browser.storage.local.set({
+                        openWindowNames: Object.assign({
+                            [win.id]: data[key].name
+                        }, data.openWindowNames)
+                    });
+                }
+
+                // Remove row
+                // TODO: add this to a function?
+                let rowToRemove = document.getElementById(ROW_ID + key);
+                rowToRemove.parentNode.removeChild(rowToRemove);
+                browser.storage.local.remove(key);
                 
             } else if (button.id.startsWith(BUTTON_DELETE_ID)) {
                 let key = button.id.split(BUTTON_DELETE_ID)[1];
@@ -103,7 +92,7 @@ document.addEventListener("click", (e) => {
                     document.getElementById(NO_WINDOW_MESSAGE_ID)
                         .removeAttribute("hidden");
                 }
-                browser.storage.local.remove(key);
+                await browser.storage.local.remove(key);
             }
         }
     }
