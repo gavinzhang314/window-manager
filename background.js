@@ -20,7 +20,7 @@ async function storeRemovedWindows() {
     let session = 
             (await browser.sessions.getRecentlyClosed({maxResults: 1}))[0];
     // Check that last session change is a window closing
-    if (session.window) {
+    if (session.window && session.window.type == "normal") {
         let data = await browser.storage.local.get();
         let tabs = session.window.tabs;
         let urls = [];
